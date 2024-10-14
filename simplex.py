@@ -149,13 +149,14 @@ def metodo_simplex_revisado(c: np.ndarray, A: np.ndarray, b: np.ndarray, order =
 
     return metodo_simplex_revisado(c_new, A_new, b, order_new)
 
-def build_standard_matrices(c: np.ndarray, A_eq: np.ndarray, b_eq:np.ndarray, bounds=list[tuple]) -> dict:
+def build_standard_matrices(c: np.ndarray, A_eq: np.ndarray, b_eq:np.ndarray, A_ub = None, b_ub = None, bounds=list[tuple]) -> dict:
     # Inspirado en scipy.optimize.linprog, toma un vector de costos c, una matrix de igualdades tales que A_eq@x = b_eq
     # además de una lista de tuplas (inferior, superior) con los límites de cada variable x
     # No es necesario incluir variables de holgura, pues lo hace automáticamente
 
     eq_rows, eq_colums = A_eq.shape
-    
+    ineq_rows, ineq_columns = A_ub.shape if A_ub is not None else (0, 0)
+
     # Separar limites en inferiores y superiores siempre que sean mayores a cero
     lower_bounds, upper_bounds = zip(*bounds)
     lower_bounds = list(filter(lambda x: x > 0, lower_bounds))
@@ -163,10 +164,10 @@ def build_standard_matrices(c: np.ndarray, A_eq: np.ndarray, b_eq:np.ndarray, bo
     
     upper_count = len(upper_bounds)
     lower_count = len(lower_bounds)
-    rows = eq_rows + upper_count + lower_count
-    cols = eq_colums + upper_count + lower_count
+    rows = eq_rows + upper_count + lower_count + ineq_rows
+    cols = eq_colums + upper_count + lower_count + ineq_columns
 
-    slack_variable_count = rows - eq_rows
+    slack_variable_count = cols - eq_colums
     normal_variable_count = eq_colums
 
     A = np.zeros(shape=(rows, cols))
@@ -185,6 +186,11 @@ def build_standard_matrices(c: np.ndarray, A_eq: np.ndarray, b_eq:np.ndarray, bo
             A[rows-1-lower_bound_count, cols - (normal_variable_count - idx)] = 1
             A[rows-1-lower_bound_count, slack_variable_count-lower_bound_count-1] = -1
             lower_bound_count += 1
+    
+    if A_ub is not None:
+        A[eq_rows+eq_colums:eq_rows+eq_colums+ineq_rows, cols-ineq_columns:cols] = A_ub
+        for idx in range(ineq_rows):
+            A[eq_rows+eq_colums+idx, eq_colums + idx] = 1
 
     c_new = np.zeros(shape=(cols,1))
     c_new[cols-eq_colums: cols, 0] = c
@@ -192,6 +198,7 @@ def build_standard_matrices(c: np.ndarray, A_eq: np.ndarray, b_eq:np.ndarray, bo
     b_new = np.zeros(shape=(rows, 1))
     b_new[0:eq_rows] = b_eq
     b_new[eq_rows:eq_rows+upper_count] = np.vstack(upper_bounds)
+    b_new[eq_rows+upper_count:eq_rows+upper_count+ineq_rows] = np.vstack(b_ub)
     b_new[rows-lower_bound_count:rows] = np.vstack([x for x in reversed(lower_bounds)])
     return {
         'c': c_new,
@@ -201,9 +208,9 @@ def build_standard_matrices(c: np.ndarray, A_eq: np.ndarray, b_eq:np.ndarray, bo
         'slack_vars': slack_variable_count
     }
 
-def metodo_simplex_talegon(c: np.ndarray, A_eq: np.ndarray, b_eq:np.ndarray, bounds=list[tuple]) -> IterationResult:
+def metodo_simplex_talegon(c: np.ndarray, A_eq: np.ndarray, b_eq:np.ndarray, A_ub = None, b_ub = None, bounds=list[tuple]) -> IterationResult:
     # Se encarga de pasar de una forma amigable al usuario a la forma estándar
-    standard_form = build_standard_matrices(c, A_eq, b_eq, bounds)
+    standard_form = build_standard_matrices(c=c, A_eq=A_eq, b_eq=b_eq, A_ub=A_ub, b_ub=b_ub, bounds=bounds)
     c_std = standard_form['c']
     A_std = standard_form['A']
     b_std = standard_form['b']
