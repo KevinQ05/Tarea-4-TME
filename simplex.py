@@ -106,7 +106,7 @@ def iteracion_simplex(c: np.ndarray, A: np.ndarray, b: np.ndarray, order = None)
 
     # x0 incluyendo las variables no básicas, que son cero
     result_x = np.zeros((n,1))
-    result_x[0:m, 0:] = x0
+    result_x[0:m, :] = x0
 
     res =  {
         "z": z0,
@@ -145,7 +145,7 @@ def metodo_simplex_revisado(c: np.ndarray, A: np.ndarray, b: np.ndarray, order =
 
     A_new = switch_array_columns(A, i1, i2)
     c_new = switch_array_rows(c, i1, i2)
-    order_new = switch_array_columns(inicial.order, i1, i2)
+    order_new = switch_array_columns(order.reshape(1, -1), i1, i2).flatten()
 
     return metodo_simplex_revisado(c_new, A_new, b, order_new)
 
