@@ -156,12 +156,24 @@ def metodo_simplex_revisado(c: np.ndarray, A: np.ndarray, b: np.ndarray, order=N
     c_new = switch_array_rows(c, i1, i2)
     order_new = switch_array_columns(order.reshape(1, -1), i1, i2).flatten()
 
+    # Hacky print statement to show iterations
     if verbose:
         print(f"Iteracion {iter}:")
         inicial.pretty_print()
-        print(f"A = \n{A}")
+        print("A = ")
+        # First print the variable names (headers for each column)
+        for idx in order:
+            print(f"x{idx}", end="\t")
+
+        print()  # Newline after printing headers
+
+        # Now print the matrix A with each column under its corresponding variable name
+        for row in A:
+            for element in row:
+                print(f"{element}", end="\t")
+            print()  # Newline after each row
         print(f"Cocientes b/Y = \n{cocientes}")
-        print(f"x{i1} sale de la base, x{i2} entra a la base")
+        print(f"x{order[i1]} sale de la base, x{order[i2]} entra a la base")
 
     return metodo_simplex_revisado(c_new, A_new, b, order_new, verbose=verbose, iter=iter+1)
 
