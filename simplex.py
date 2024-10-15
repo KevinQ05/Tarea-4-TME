@@ -50,6 +50,7 @@ class IterationResult:
             if idx == var_count:
                 break
             print_str += f'{key} = {val} \n'
+        print_str += f"Costos reducidos: {self.c_reducidos}"
 
         print(print_str)
 
@@ -158,9 +159,8 @@ def metodo_simplex_revisado(c: np.ndarray, A: np.ndarray, b: np.ndarray, order=N
     if verbose:
         print(f"Iteracion {iter}:")
         inicial.pretty_print()
-        print(f"A = {A}")
-        print(f"Costos reducidos: {c_reducidos}")
-        print(f"Cocientes b/Y = {cocientes}")
+        print(f"A = \n{A}")
+        print(f"Cocientes b/Y = \n{cocientes}")
         print(f"x{i1} sale de la base, x{i2} entra a la base")
 
     return metodo_simplex_revisado(c_new, A_new, b, order_new, verbose=verbose, iter=iter+1)
