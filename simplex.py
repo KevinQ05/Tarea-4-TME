@@ -184,7 +184,10 @@ def build_standard_matrices(c: np.ndarray, A_eq: np.ndarray, b_eq: np.ndarray, A
     # No es necesario incluir variables de holgura, pues lo hace automáticamente
 
     eq_rows, eq_colums = A_eq.shape
-    ineq_rows, ineq_columns = A_ub.shape if A_ub is not None else (0, 0)
+    if isinstance(A_ub, np.ndarray):
+        ineq_rows, ineq_columns = A_ub.shape
+    else:
+        ineq_rows, ineq_columns = (0, 0)
 
     # Separar limites en inferiores y superiores siempre que sean mayores a cero
     lower_bounds, upper_bounds = zip(*bounds)
@@ -230,7 +233,9 @@ def build_standard_matrices(c: np.ndarray, A_eq: np.ndarray, b_eq: np.ndarray, A
     b_new = np.zeros(shape=(rows, 1))
     b_new[0:eq_rows] = b_eq
     b_new[eq_rows:eq_rows+upper_count] = np.vstack(upper_bounds)
-    b_new[eq_rows+upper_count:eq_rows+upper_count+ineq_rows] = np.vstack(b_ub)
+    if b_ub is not None:
+        b_new[eq_rows+upper_count:eq_rows +
+              upper_count+ineq_rows] = np.vstack(b_ub)
     b_new[rows -
           lower_bound_count:rows] = np.vstack([x for x in reversed(lower_bounds)])
     return {
