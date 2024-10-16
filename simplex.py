@@ -2,9 +2,10 @@ import numpy as np
 from dataclasses import dataclass
 
 np.seterr(divide="ignore")
+Array = np.ndarray
 
 
-def switch_array_columns(array: np.ndarray, i1: int, i2: int) -> np.ndarray:
+def switch_array_columns(array: Array, i1: int, i2: int) -> Array:
     new_array = array.copy()
     match new_array.shape:
         case (_,):
@@ -19,7 +20,7 @@ def switch_array_columns(array: np.ndarray, i1: int, i2: int) -> np.ndarray:
     return new_array
 
 
-def switch_array_rows(array: np.ndarray, i1: int, i2: int) -> np.ndarray:
+def switch_array_rows(array: Array, i1: int, i2: int) -> Array:
     new_array = array.copy()
     new_array[[i1, i2]] = new_array[[i2, i1]]
 
@@ -29,12 +30,12 @@ def switch_array_rows(array: np.ndarray, i1: int, i2: int) -> np.ndarray:
 @dataclass
 class IterationResult:
     z: float
-    x: np.ndarray
-    pi: np.ndarray
-    c_reducidos: np.ndarray
-    b_barra: np.ndarray
-    Y: np.ndarray
-    order: np.ndarray
+    x: Array
+    pi: Array
+    c_reducidos: Array
+    b_barra: Array
+    Y: Array
+    order: Array
 
     def pretty_print(self, var_count: int = None):
         if var_count == None:
@@ -55,7 +56,7 @@ class IterationResult:
         print(print_str)
 
 
-def iteracion_simplex(c: np.ndarray, A: np.ndarray, b: np.ndarray, order=None) -> IterationResult:
+def iteracion_simplex(c: Array, A: Array, b: Array, order: Array | None = None) -> IterationResult:
     if len(c.shape) == 1:
         raise ValueError("C debe ser un vector columna")
     if len(b.shape) == 1:
@@ -131,7 +132,7 @@ def iteracion_simplex(c: np.ndarray, A: np.ndarray, b: np.ndarray, order=None) -
 # Toma las decisiones de cambio de variables
 
 
-def metodo_simplex_revisado(c: np.ndarray, A: np.ndarray, b: np.ndarray, order=None, verbose: bool = False, iter: int = 0) -> IterationResult:
+def metodo_simplex_revisado(c: Array, A: Array, b: Array, order: Array | None = None, verbose: bool = False, iter: int = 0) -> IterationResult:
     m, _ = A.shape
 
     inicial = iteracion_simplex(c, A, b, order)
@@ -178,13 +179,13 @@ def metodo_simplex_revisado(c: np.ndarray, A: np.ndarray, b: np.ndarray, order=N
     return metodo_simplex_revisado(c_new, A_new, b, order_new, verbose=verbose, iter=iter+1)
 
 
-def build_standard_matrices(c: np.ndarray, A_eq: np.ndarray, b_eq: np.ndarray, A_ub=None, b_ub=None, bounds=list[tuple]) -> dict:
+def build_standard_matrices(c: Array, A_eq: Array, b_eq: Array, A_ub=None, b_ub=None, bounds=list[tuple]) -> dict:
     # Inspirado en scipy.optimize.linprog, toma un vector de costos c, una matrix de igualdades tales que A_eq@x = b_eq
     # además de una lista de tuplas (inferior, superior) con los límites de cada variable x
     # No es necesario incluir variables de holgura, pues lo hace automáticamente
 
     eq_rows, eq_colums = A_eq.shape
-    if isinstance(A_ub, np.ndarray):
+    if isinstance(A_ub, Array):
         ineq_rows, ineq_columns = A_ub.shape
     else:
         ineq_rows, ineq_columns = (0, 0)
@@ -247,7 +248,7 @@ def build_standard_matrices(c: np.ndarray, A_eq: np.ndarray, b_eq: np.ndarray, A
     }
 
 
-def metodo_simplex_talegon(c: np.ndarray, A_eq: np.ndarray, b_eq: np.ndarray, A_ub=None, b_ub=None, bounds=list[tuple], verbose: bool = False) -> IterationResult:
+def metodo_simplex_talegon(c: Array, A_eq: Array, b_eq: Array, A_ub=None, b_ub=None, bounds=list[tuple], verbose: bool = False) -> IterationResult:
     # Se encarga de pasar de una forma amigable al usuario a la forma estándar
     standard_form = build_standard_matrices(
         c=c, A_eq=A_eq, b_eq=b_eq, A_ub=A_ub, b_ub=b_ub, bounds=bounds)
