@@ -211,7 +211,8 @@ def build_standard_matrices(c: Array, A_eq: Array, b_eq: Array, A_ub=None, b_ub=
         eq_colums:cols] = np.eye(normal_variable_count)
     # then slack upper limits
     A[eq_rows:eq_rows+eq_colums, 0:eq_colums] = np.eye(normal_variable_count)
-
+    # np.append(np.vstack(np.zeros(shape=(rows, 1))), A)
+    # A[0:eq_rows, 0] = np.vstack(np.ones(shape=(eq_rows, 1)))
     lower_bound_count = 0
 
     # Añadir a la matriz A las restricciones de los límites
@@ -219,7 +220,7 @@ def build_standard_matrices(c: Array, A_eq: Array, b_eq: Array, A_ub=None, b_ub=
         if low > 0:
             A[rows-1-lower_bound_count, cols -
                 (normal_variable_count - idx)] = 1
-            A[rows-1-lower_bound_count, slack_variable_count-lower_bound_count-1] = -1
+            A[rows-1-lower_bound_count, slack_variable_count-lower_bound_count-2] = -1
             lower_bound_count += 1
 
     if A_ub is not None:
@@ -228,6 +229,9 @@ def build_standard_matrices(c: Array, A_eq: Array, b_eq: Array, A_ub=None, b_ub=
         for idx in range(ineq_rows):
             A[eq_rows+eq_colums+idx, eq_colums + idx] = 1
 
+    print(A)
+    # re calculate for A has changed
+    rows, cols = A.shape
     c_new = np.zeros(shape=(cols, 1))
     c_new[cols-eq_colums: cols, 0] = c
 
