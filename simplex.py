@@ -259,6 +259,7 @@ def metodo_simplex_talegon(c: Array, A_eq: Array, b_eq: Array, A_ub=None, b_ub=N
     basic_vars = standard_form['basic_vars']
     slack_vars = standard_form['slack_vars']
 
+    # Se han ordenado primero todas las variables de holgura y luego las originales
     order = [x for x in range(basic_vars, slack_vars+basic_vars)]
     order += [x for x in range(0, basic_vars)]
     order = np.array(order)
