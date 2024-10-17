@@ -198,7 +198,7 @@ def build_standard_matrices(c: Array, A_eq: Array, b_eq: Array, A_ub=None, b_ub=
     upper_count = len(upper_bounds)
     lower_count = len(lower_bounds)
     rows = eq_rows + upper_count + lower_count + ineq_rows
-    cols = eq_colums + upper_count + lower_count + ineq_columns
+    cols = eq_colums + upper_count + lower_count + ineq_rows
 
     slack_variable_count = cols - eq_colums
     normal_variable_count = eq_colums
@@ -237,8 +237,10 @@ def build_standard_matrices(c: Array, A_eq: Array, b_eq: Array, A_ub=None, b_ub=
     if b_ub is not None:
         b_new[eq_rows+upper_count:eq_rows +
               upper_count+ineq_rows] = np.vstack(b_ub)
-    b_new[rows -
-          lower_bound_count:rows] = np.vstack([x for x in reversed(lower_bounds)])
+    if lower_bound_count > 0:
+        b_new[rows -
+              lower_bound_count:rows] = np.vstack([x for x in reversed(lower_bounds)])
+    print(A)
     return {
         'c': c_new,
         'A': A,
